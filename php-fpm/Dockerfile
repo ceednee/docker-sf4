@@ -1,8 +1,10 @@
-FROM alpine:3.6
+FROM alpine:3.8
 
 LABEL maintainer="Vincent Composieux <vincent.composieux@gmail.com>"
 
-RUN apk add --update \
+RUN apk add --update --no-cache \
+    php7-memcached \
+    php7-zip \
     php7-fpm \
     php7-apcu \
     php7-ctype \
@@ -27,12 +29,29 @@ RUN apk add --update \
     php7-session \
     php7-simplexml \
     php7-xdebug \
+    libbsd \
     make \
-    curl
+    curl \
+    vim \
+    zip \
+    unzip \
+    zip \
+    git \
+    wget \
+    bash \
+    yarn \
+    php7 \
+    php
 
 RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
 
+# Install Composer
 RUN curl --insecure https://getcomposer.org/composer.phar -o /usr/bin/composer && chmod +x /usr/bin/composer
+
+# Set timezone
+RUN rm /etc/localtime
+RUN ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime
+RUN "date"
 
 ADD symfony.ini /etc/php7/php-fpm.d/
 ADD symfony.ini /etc/php7/cli/conf.d/
@@ -42,5 +61,5 @@ ADD symfony.pool.conf /etc/php7/php-fpm.d/
 
 CMD ["php-fpm7", "-F"]
 
-WORKDIR /var/www/symfony
+WORKDIR /var/www
 EXPOSE 9000
