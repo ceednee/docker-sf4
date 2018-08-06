@@ -17,7 +17,7 @@ services:
         links:
             - db
     nginx:
-        build: ./nginx
+        build: nginx-proxy
         ports:
             - "80:80"
         links:
@@ -25,7 +25,7 @@ services:
         volumes_from:
             - php
         volumes:
-            - ./logs/nginx/:/var/log/nginx
+            - ./logs/nginx-proxy/:/var/log/nginx-proxy
     elk:
         image: willdurand/elk
         ports:

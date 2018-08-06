@@ -5,7 +5,7 @@ services:
         container_name: docker-memcached
 
     db:
-        image: mysql:5.8
+        image: mysql
         container_name: docker-mysql
         ports:
             - "3306:3306"
@@ -14,7 +14,6 @@ services:
             - "./.data/var/run/mysqld:/var/run/mysqld"
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-            MYSQL_ROOT_USER: ${MYSQL_ROOT_USER}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
@@ -28,21 +27,27 @@ services:
             - ${SF_APP_PATH}:/var/www
         links:
             - db
-            - memcached
         extra_hosts:
             - "docker.host:127.0.0.1"
 
     nginx:
         build: ./nginx
         container_name: docker-nginx
+        #restart: always
         ports:
             - "80:80"
-        links:
-            - php
-        volumes_from:
-            - php
+        #    - "443:443"
+        #links:
+        #    - php
+        #volumes_from:
+        #    - php
         volumes:
-            - ./logs/nginx/:/var/log/nginx
+            - './logs/nginx/:/var/log/nginx'
+            - ${ETC_PATH}/certs:/etc/nginx/certs:ro
+            - '/var/run/docker.sock:/var/run/docker.sock:ro'
+        networks:
+            - default
+            - nginx-ssl
 
     nginx-ssl:
         build: ./nginx-ssl
@@ -63,10 +68,10 @@ services:
         ports:
             - 8001:80
 
-networks:
-    nginx-ssl:
-        external: true
-
 volumes:
     sf_dev-sync:
+        external: true
+
+networks:
+    nginx-ssl:
         external: true
