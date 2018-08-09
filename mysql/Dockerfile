@@ -65,6 +65,10 @@ RUN { \
 	&& chmod 777 /var/run/mysqld
 
 VOLUME /var/lib/mysql
+
+RUN mysql -e 'GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'%'  WITH GRANT OPTION;;'
+RUN mysql -e 'FLUSH PRIVILEGES;'
+
 # Config files
 COPY config/ /etc/mysql/
 COPY docker-entrypoint.sh /usr/local/bin/

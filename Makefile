@@ -14,10 +14,14 @@ ifeq ($(OS),Darwin)
 	docker-compose stop
 	rm -fr .docker-sync
 	docker-sync stop
-
 else
 	docker-compose stop
 endif
+
+install:
+	docker network create nginx-ssl
+	docker network create net-mysql
+	make start
 
 rebuild:		## Restart the Docker containers using updated Dockerfile
 	docker-compose -f docker-compose-dev.yml up --build -d
@@ -29,13 +33,10 @@ reinstall:		## Rebuild the Docker containers
 	rm -fr ./docker-sync
 	rm -fr ./.data
 	make prune
-	docker network create nginx-ssl
-	docker network create net-mysql
-	make start
+	make install
 
 restart:		## Restart the Docker containers
 	make stop && make start
-
 
 prune:
 	docker system prune -a
