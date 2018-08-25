@@ -41,7 +41,11 @@ RUN apk add --update --no-cache \
     bash \
     yarn \
     php7 \
-    php
+    php \
+    # wkhtmltopdf
+    libgcc libstdc++ libx11 glib libxrender libxext libintl \
+    libcrypto1.0 libssl1.0 \
+    ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family
 
 RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
 
@@ -58,6 +62,8 @@ ADD symfony.ini /etc/php7/cli/conf.d/
 ADD xdebug.ini  /etc/php7/conf.d/
 
 ADD symfony.pool.conf /etc/php7/php-fpm.d/
+
+COPY wkhtmltopdf /usr/local/bin
 
 CMD ["php-fpm7", "-F"]
 
