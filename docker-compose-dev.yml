@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
     memcached:
         image: memcached:alpine
@@ -6,7 +6,7 @@ services:
 
     db:
         #build: ./mysql
-        image: mysql
+        image: mysql:5.7
         container_name: docker-mysql
         ports:
             - "3306:3306"
@@ -19,11 +19,8 @@ services:
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-        extra_hosts:
-            - "docker.mysql:127.0.0.1"
-        #networks:
-        #    - net-mysql
-
+        networks:
+            - backend
     php:
         build: ./php-fpm
         container_name: docker-php
@@ -31,16 +28,11 @@ services:
             - "9000:9000"
         volumes:
             - ${SF_APP_PATH}:/var/www
-        links:
-            - memcached
-            - db
         depends_on:
             - db
-        extra_hosts:
-            - "docker.php:127.0.0.1"
-            - "docker.mysql:127.0.0.1"
-        #networks:
-        #    - net-mysql
+        networks:
+            - frontend
+            - backend
 
 #    nginx-ssl:
 #        build: ./nginx-ssl
@@ -55,7 +47,7 @@ services:
 #        networks:
 #            - nginx-ssl
 #        environment:
-#            - domains='kmts.test,logencia.test'
+#            - domains='kmts.test
 #            - email='ceednee@gmail.com'
 
     nginx:
@@ -63,23 +55,27 @@ services:
         container_name: docker-nginx
         ports:
             - "80:80"
-        links:
-            - php
-        volumes_from:
-            - php
         volumes:
             - ./logs/nginx/:/var/log/nginx
+        networks:
+            - backend
+        depends_on:
+            - php
 
     maildev:
         image: djfarrelly/maildev
         container_name: docker-mail
         ports:
-            - 8001:80
+            - 1080:80
+            - 1025:25
 
 networks:
     nginx-ssl:
         external: true
-    net-mysql:
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge
 
 volumes:
     sf_dev-sync:

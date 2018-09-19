@@ -1,77 +1,82 @@
-version: '2'
+version: '3'
 services:
     memcached:
         image: memcached:alpine
         container_name: docker-memcached
 
     db:
-        image: mysql
+        #build: ./mysql
+        image: mysql:5.7
         container_name: docker-mysql
         ports:
-            - "3306:3306"
+        - "3306:3306"
         volumes:
-            - "./.data/db:/var/lib/mysql"
-            - "./.data/var/run/mysqld:/var/run/mysqld"
+        - "./.data/db:/var/lib/mysql:rw"
+        - "./.data/var/run/mysqld:/var/run/mysqld:rw"
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_ROOT_USER: ${MYSQL_ROOT_USER}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-
+        networks:
+        - backend
     php:
         build: ./php-fpm
         container_name: docker-php
         ports:
-            - "9000:9000"
+        - "9000:9000"
         volumes:
-            - ${SF_APP_PATH}:/var/www
-        links:
-            - db
-        extra_hosts:
-            - "docker.host:127.0.0.1"
+        - ${SF_APP_PATH}:/var/www
+        depends_on:
+        - db
+        networks:
+        - frontend
+        - backend
+
+    #    nginx-ssl:
+    #        build: ./nginx-ssl
+    #        container_name: docker-nginx-ssl
+    #        #restart: always
+    #        #image: denji/letsencrypt-certbot:alpine
+    #        volumes:
+    #            - ${ETC_PATH}/certs:/etc/letsencrypt
+    #            #- '/var/run/docker.sock:/var/run/docker.sock:ro'
+    #        volumes_from:
+    #            - nginx
+    #        networks:
+    #            - nginx-ssl
+    #        environment:
+    #            - domains='kmts.test
+    #            - email='ceednee@gmail.com'
 
     nginx:
         build: ./nginx
         container_name: docker-nginx
-        #restart: always
         ports:
-            - "80:80"
-        #    - "443:443"
-        #links:
-        #    - php
-        #volumes_from:
-        #    - php
+        - "80:80"
         volumes:
-            - './logs/nginx/:/var/log/nginx'
-            - ${ETC_PATH}/certs:/etc/nginx/certs:ro
-            - '/var/run/docker.sock:/var/run/docker.sock:ro'
+        - ./logs/nginx/:/var/log/nginx
         networks:
-            - default
-            - nginx-ssl
-
-    nginx-ssl:
-        build: ./nginx-ssl
-        container_name: docker-nginx-ssl
-        restart: always
-        image: denji/letsencrypt-certbot:alpine
-        volumes:
-            - ${ETC_PATH}/certs:/etc/nginx/certs:ro
-            - '/var/run/docker.sock:/var/run/docker.sock:ro'
-        volumes_from:
-            - nginx
-        networks:
-            - nginx-ssl
+        - backend
+        depends_on:
+        - php
 
     maildev:
         image: djfarrelly/maildev
         container_name: docker-mail
         ports:
-            - 8001:80
-
-volumes:
-    sf_dev-sync:
-        external: true
+        - 1080:80
+        - 1025:25
 
 networks:
     nginx-ssl:
+        external: true
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge
+
+volumes:
+    sf_dev-sync:
         external: true
