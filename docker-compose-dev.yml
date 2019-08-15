@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 services:
     memcached:
         image: memcached:alpine
@@ -11,8 +11,8 @@ services:
         ports:
             - "3306:3306"
         volumes:
-            - "./.data/db:/var/lib/mysql:rw"
-            - "./.data/var/run/mysqld:/var/run/mysqld:rw"
+            - "./.data/mysql/db:/var/lib/mysql:rw"
+            - "./.data/mysql/var/run/mysqld:/var/run/mysqld:rw"
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_ROOT_USER: ${MYSQL_ROOT_USER}
@@ -21,6 +21,30 @@ services:
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
         networks:
             - backend
+
+    postgres:
+        image: postgres
+        container_name: docker-postgres
+        restart: always
+        ports:
+            - "5432:5432"
+        environment:
+            LC_ALL: C.UTF-8
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+        networks:
+            - backend
+
+    adminer:
+        image: adminer
+        container_name: docker-adminer
+        restart: always
+        ports:
+            - 8080:8080
+        networks:
+            - backend
+
     php:
         build: ./php-fpm
         container_name: docker-php
@@ -55,6 +79,8 @@ services:
         container_name: docker-nginx
         ports:
             - "80:80"
+        volumes_from:
+            - php
         volumes:
             - ./logs/nginx/:/var/log/nginx
         networks:
@@ -68,6 +94,27 @@ services:
         ports:
             - 1080:80
             - 1025:25
+        networks:
+            backend:
+                aliases:
+                    - fakesmtp
+
+    mongodb:
+        image: mongo:latest
+        container_name: docker-mongodb
+        environment:
+          - MONGO_INITDB_DATABASE=strapi
+          - MONGO_DATA_DIR=/data/db
+          - MONGO_LOG_DIR=/dev/null
+          - MONGODB_ADMIN_USER="root"
+          - MONGODB_ADMIN_PASS="root"
+          - MONGODB_USER="user"
+          - MONGODB_PASS="pass"
+        volumes:
+          - ./data/mongo/db:/data/db
+        ports:
+          - 27017:27017
+        #command: mongod --smallfiles --logpath=/dev/null # --quiet
 
 networks:
     nginx-ssl:
