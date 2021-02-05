@@ -4,7 +4,7 @@ start:			## Start the Docker containers
 ifeq ($(OS),Darwin)
 	docker volume create --name=sf_dev-sync
 	docker-sync start
-	docker-compose -f docker-compose-dev.yml up -d
+	docker-compose -f docker-compose.yml up -d
 else
 	docker-compose up -d
 endif
@@ -45,4 +45,3 @@ prune:
 	docker image prune -f
 	docker volume prune -f
 	docker network prune -f
-
