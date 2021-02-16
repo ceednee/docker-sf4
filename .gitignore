@@ -4,3 +4,4 @@
 .docker-sync
 .idea
 .DS_Store
+.env
