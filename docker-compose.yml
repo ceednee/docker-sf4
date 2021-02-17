@@ -91,7 +91,7 @@ services:
           - MONGO_DATA_DIR=/data/db
           - MONGO_LOG_DIR=/dev/null
           - MONGODB_ADMIN_USER=${MONGODB_ADMIN_USER}
-          - MONGODB_ADMIN_PASS="${MONGODB_ADMIN_PASS}
+          - MONGODB_ADMIN_PASS=${MONGODB_ADMIN_PASS}
           - MONGODB_USER=${MONGODB_USER}
           - MONGODB_PASS=${MONGODB_PASS}
         volumes:
